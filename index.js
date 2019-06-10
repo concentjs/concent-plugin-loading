@@ -2,6 +2,8 @@ var { cst, getState, setState, appendState } = require('concent')
 
 var pluginName = 'loading';
 var module_trueLoadingCount = {}
+var moduleAndFnName_isAsyncFn_ = {};
+
 var toExport = module.exports = {};
 
 function isGenerator(obj) {
@@ -15,9 +17,36 @@ function isGeneratorFunction(obj) {
   return isGenerator(constructor.prototype);
 }
 
-function isAsyncFunction(fn) {
-  return Object.prototype.toString.call(fn) === '[object AsyncFunction]';
+function isAsyncFunction(module, fn) {
+  var key = module + '/' + fn.name;
+  var isAsync = moduleAndFnName_isAsyncFn_[key];
+  if (isAsync !== undefined) {//返回缓存的结果
+    return isAsync;
+  }
+
+  isAsync = Object.prototype.toString.call(fn) === '[object AsyncFunction]';
+  if (isAsync === true) {
+    moduleAndFnName_isAsyncFn_[key] = true;
+    return true;
+  }
+  
+  //有可能成降级编译成 __awaiter格式的了
+  var fnStr = fn.toString();
+  if (fnStr.indexOf('__awaiter') > 0) {
+    moduleAndFnName_isAsyncFn_[key] = true;
+    return true;
+  }
+
+  if(isGeneratorFunction(fn)){
+    moduleAndFnName_isAsyncFn_[key] = true;
+    return true;
+  }
+  
+  moduleAndFnName_isAsyncFn_[key] = false;
+  return false;
 }
+
+
 
 
 toExport.configure = function () {
