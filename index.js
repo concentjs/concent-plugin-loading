@@ -2,6 +2,7 @@ var { cst, getState, setState, appendState } = require('@tencent/concent')
 
 var pluginName = 'loading';
 var module_trueLoadingCount = {}
+var toExport = module.exports = {};
 
 function isGenerator(obj) {
   return 'function' == typeof obj.next && 'function' == typeof obj.throw;
@@ -19,21 +20,21 @@ function isAsyncFunction(fn) {
 }
 
 
-exports.configure = function () {
+toExport.configure = function () {
   return {
     module: pluginName,
     state: {},
   }
 }
 
-exports.writeModuleState = function (pluginState, newModule) {
+toExport.writeModuleState = function (pluginState, newModule) {
   var toSet = {};
   toSet[newModule] = false;
   appendState(pluginName, toSet);
   module_trueLoadingCount[newModule] = 0;
 }
 
-exports.subscribe = function (sig, payload) {
+toExport.subscribe = function (sig, payload) {
   var module = payload.module;
   if (cst.SIG_FN_START === sig) {
     var fn = payload.fn;
@@ -66,5 +67,6 @@ exports.subscribe = function (sig, payload) {
       }
     }
   }
-
 }
+
+toExport.default = toExport;
