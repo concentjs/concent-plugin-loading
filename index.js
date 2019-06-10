@@ -67,7 +67,7 @@ toExport.subscribe = function (sig, payload) {
   var module = payload.module;
   if (cst.SIG_FN_START === sig) {
     var fn = payload.fn;
-    if (isAsyncFunction(fn) || isGeneratorFunction(fn)) {
+    if (isAsyncFunction(module, fn)) {
       // var chainId = payload.chainId;
 
       var count = module_trueLoadingCount[module];
