@@ -1,4 +1,4 @@
-var { cst, getState, setState, appendState } = require('@tencent/concent')
+var { cst, getState, setState, appendState } = require('concent')
 
 var pluginName = 'loading';
 var module_trueLoadingCount = {}
