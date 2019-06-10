@@ -1,0 +1,27 @@
+{
+  "name": "concent-plugin-loading",
+  "version": "1.0.0",
+  "description": "a plugin for control your loading state",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/concentjs/concent-plugin-loading.git"
+  },
+  "keywords": [
+    "concent",
+    "loading",
+    "concent-plugin-loading"
+  ],
+  "author": "fantasticsoul",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/concentjs/concent-plugin-loading/issues"
+  },
+  "homepage": "https://github.com/concentjs/concent-plugin-loading#readme",
+  "dependencies": {
+    "concent": "^1.2.27"
+  }
+}
