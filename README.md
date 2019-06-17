@@ -1,6 +1,6 @@
 
 ### concent-plugin-loading
-一个方便你几中管理loading的插件
+一个方便你集中管理loading的插件
 
 ### [在线示例](https://stackblitz.com/edit/cc-plugin-loading)
 
@@ -78,8 +78,10 @@ export async function handleStudentNameChange({dispatch, payload:name}){
 ```
 * 注意1，reducer函数的格式
 > 仅当你的调用的reducer函数为async函数或者generator函数时，loading插件会改变各个模块loading的值
+
 * 注意2，对同一个模块并行发起多个dispatch
 > 对同一个模块并发起多个dispatch时，只有全部函数执行结束loading才会变成false
+
 ```
   changeName = () => {
     //假设student模块存在以下3个reducer函数，这里同时调了3次
@@ -89,8 +91,10 @@ export async function handleStudentNameChange({dispatch, payload:name}){
     this.$$dispatch('handleStudentNameChange3', this.state.tmpName);
   }
 ```
+
 * 注意2，dispatch穿插调用
 >在一个模块的reducer函数里，调用了另外模块的reducer函数，那个模块的loading值也会经历变成true然后变成false的过程
+
 ```
 // code in models/student/reducer.js
 const sleep = (ms = 3000)=> new Promise(resolve=> setTimeout(resolve, ms));
@@ -102,5 +106,4 @@ export async function updateStudentName({payload:name, dispatch}){
   await dispatch('product/fetchProductList');
   return {name};
 }
-
 ```

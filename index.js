@@ -63,7 +63,7 @@ toExport.writeModuleState = function (pluginState, newModule) {
   module_trueLoadingCount[newModule] = 0;
 }
 
-toExport.subscribe = function (sig, payload) {
+toExport.receive = function (sig, payload) {
   var module = payload.module;
   if (cst.SIG_FN_START === sig) {
     var fn = payload.fn;
