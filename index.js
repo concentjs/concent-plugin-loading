@@ -1,4 +1,4 @@
-var { cst, getState, setState, appendState } = require('concent')
+var { cst, getState, setState, appendState } = require('concent');
 
 var pluginName = 'loading';
 var module_trueLoadingCount = {};
@@ -48,30 +48,75 @@ function isAsyncFunction(module, fn) {
   return false;
 }
 
-toExport.getConfigure = function () {
+function _makeFnLoadingState(reducerMod) {
+  var state = {};
+  var _reducerModule_fnNames_ = ccContext.reducer._reducerModule_fnNames_;
+
+  if (reducerMod) {
+    var fullFnNames = _reducerModule_fnNames_[reducerMod];
+    if (fullFnNames) {
+      fullFnNames.forEach(function (name) {
+        state[name] = false;
+      });
+    }
+    return state;
+  }
+
+  Object.keys(_reducerModule_fnNames_).forEach(function (reducerMod) {
+    const fnNames = _reducerModule_fnNames_[reducerMod];
+    fnNames.forEach(function (name) {
+      state[reducerMod + '/' + name] = false;
+    });
+  });
+  return state;
+}
+
+/** concent启动时会调用一次, 用户configure */
+toExport.getConf = function () {
+  var state = {};
+  if (fnLoading) {
+    state = _makeFnLoadingState();
+  } else {
+    var moduleName_stateKeys_ = ccContext.moduleName_stateKeys_;
+    Object.keys(moduleName_stateKeys_).forEach(function (mod) {
+      state[mod] = false;
+    });
+  }
+
   return {
+    name: pluginName,
     module: pluginName,
-    state: {
+    conf: { state: state },//用于给configure配置用
+    extra: {
       module_trueLoadingCount: module_trueLoadingCount,
       moduleAndFnName_isAsyncFn_: moduleAndFnName_isAsyncFn_,
       fnLoading: fnLoading,
       onlyForAsync: onlyForAsync,
-    },
+    }
   }
 }
 
-toExport.setConfigure = function (conf) {
+/**
+ * @param {{fnLoading:boolean, onlyForAsync:boolean}} conf fnLoading default is true, onlyForAsync default is false
+ */
+toExport.setConf = function (conf) {
   if (conf) {
     var _fnLoading = conf.fnLoading;
     var _onlyForAsync = conf.onlyForAsync;
     if (_fnLoading !== undefined) fnLoading = _fnLoading;
-    if (_onlyForAsync !== undefined) fnLoading = _onlyForAsync;
+    if (_onlyForAsync !== undefined) onlyForAsync = _onlyForAsync;
   }
 }
 
 /** 如定义此函数，concent配置模块时，会调用此逻辑 */
 toExport.writeModuleState = function (pluginModuleState, newModule) {
   var toSet = {};
+  if (fnLoading) {
+    state = _makeFnLoadingState(newModule);
+    appendState(pluginName, toSet);
+    return;
+  }
+
   toSet[newModule] = false;
   appendState(pluginName, toSet);
   module_trueLoadingCount[newModule] = 0;
@@ -82,11 +127,11 @@ function setFnLoadingStatus(module, fnName, loading) {
   var toSet = {};
   toSet[key] = loading;
   setState(pluginName, toSet);
-}cc
+} cc
 
 function setLoadingTrue(module, fnName) {
   if (fnLoading === true) {
-    setFnLoadingTrue(module, fnName, true);
+    setFnLoadingStatus(module, fnName, true);
     return;
   }
 
@@ -124,8 +169,10 @@ function setLoadingFalse(module, fnName) {
 }
 
 toExport.receive = function (sig, payload) {
-  var module = payload.module;
   var fn = payload.fn;
+  if (!fn) return;//有可能非reducer调用
+  var module = payload.module;
+
   var fnName = fn.__fnName || fn.name;
   if (cst.SIG_FN_START === sig) {
     if (onlyForAsync === true) {//处于只有async函数才需要有loading的工作模式
