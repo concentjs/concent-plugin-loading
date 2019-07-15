@@ -122,12 +122,45 @@ toExport.writeModuleState = function (pluginModuleState, newModule) {
   module_trueLoadingCount[newModule] = 0;
 }
 
+var latestLoading = true;
+var enqueuedState = {};
+var timer = 0;
+function _commitEnqueuedLoadingStatus(){
+  setState(pluginName, enqueuedState);
+  enqueuedState = {};
+  clearTimeout(timer);
+}
+
+function _enqueueLoadingStatus(fnKey, loading) {
+  if (loading !== latestLoading) {
+    _commitEnqueuedLoadingStatus();
+  }
+
+  enqueuedState[fnKey] = loading;
+  latestLoading = loading;
+  clearTimeout(timer);
+  timer = setTimeout(function () {
+    _commitEnqueuedLoadingStatus();
+  }, 190);
+}
+
 function setFnLoadingStatus(module, fnName, loading) {
   var key = module + '/' + fnName;
   var toSet = {};
   toSet[key] = loading;
-  setState(pluginName, toSet);
-} cc
+
+  var pluginState = getState(pluginName);
+  var prevLoadingStatus = pluginState[key];
+  if(loading === true){
+    if(prevLoadingStatus !== true) {
+      _enqueueLoadingStatus(key, true);
+    };
+  }else{
+    if(prevLoadingStatus !== false) {
+      _enqueueLoadingStatus(key, false);
+    }
+  }
+}
 
 function setLoadingTrue(module, fnName) {
   if (fnLoading === true) {
