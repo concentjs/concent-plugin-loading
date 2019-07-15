@@ -206,6 +206,9 @@ function setLoadingFalse(module, fnName) {
 toExport.receive = function (sig, payload) {
   var fn = payload.fn;
   if (!fn) return;//有可能非reducer调用
+  if (payload.calledBy == 'invoke') return;//invoke调用，无loading特效
+  if (!payload.isSourceCall) return;//非源头触发的调用，无loading特效
+
   var module = payload.module;
 
   var fnName = fn.__fnName || fn.name;
