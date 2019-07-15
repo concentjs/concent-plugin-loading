@@ -156,9 +156,11 @@ function setFnLoadingStatus(module, fnName, loading) {
       _enqueueLoadingStatus(key, true);
     };
   }else{
-    if(prevLoadingStatus !== false) {
-      _enqueueLoadingStatus(key, false);
-    }
+    //不检查prevLoadingStatus（来自于store的值很可能有还未变化，
+    //因为如果时间够短，可能enqueuedState里有一批为true的loading还未提交），
+    //直接触发_enqueueLoadingStatus
+    //此时_enqueueLoadingStatus会触发这批true被提交
+    _enqueueLoadingStatus(key, false);
   }
 }
 
