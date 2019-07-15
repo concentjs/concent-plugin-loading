@@ -125,10 +125,11 @@ toExport.writeModuleState = function (pluginModuleState, newModule) {
 var latestLoading = true;
 var enqueuedState = {};
 var timer = 0;
-function _commitEnqueuedLoadingStatus(){
-  setState(pluginName, enqueuedState);
-  enqueuedState = {};
-  clearTimeout(timer);
+function _commitEnqueuedLoadingStatus() {
+  if (Object.keys(enqueuedState).length > 0) {
+    setState(pluginName, enqueuedState);
+    enqueuedState = {};
+  }
 }
 
 function _enqueueLoadingStatus(fnKey, loading) {
