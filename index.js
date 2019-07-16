@@ -122,47 +122,11 @@ toExport.writeModuleState = function (pluginModuleState, newModule) {
   module_trueLoadingCount[newModule] = 0;
 }
 
-var latestLoading = true;
-var enqueuedState = {};
-var timer = 0;
-function _commitEnqueuedLoadingStatus() {
-  if (Object.keys(enqueuedState).length > 0) {
-    setState(pluginName, enqueuedState);
-    enqueuedState = {};
-  }
-}
-
-function _enqueueLoadingStatus(fnKey, loading) {
-  if (loading !== latestLoading) {
-    _commitEnqueuedLoadingStatus();
-  }
-
-  enqueuedState[fnKey] = loading;
-  latestLoading = loading;
-  clearTimeout(timer);
-  timer = setTimeout(function () {
-    _commitEnqueuedLoadingStatus();
-  }, 190);
-}
-
 function setFnLoadingStatus(module, fnName, loading) {
   var key = module + '/' + fnName;
   var toSet = {};
   toSet[key] = loading;
-
-  var pluginState = getState(pluginName);
-  var prevLoadingStatus = pluginState[key];
-  if(loading === true){
-    if(prevLoadingStatus !== true) {
-      _enqueueLoadingStatus(key, true);
-    };
-  }else{
-    //不检查prevLoadingStatus（来自于store的值很可能有还未变化，
-    //因为如果时间够短，可能enqueuedState里有一批为true的loading还未提交），
-    //直接触发_enqueueLoadingStatus
-    //此时_enqueueLoadingStatus会触发这批true被提交
-    _enqueueLoadingStatus(key, false);
-  }
+  setState(pluginName, toSet);
 }
 
 function setLoadingTrue(module, fnName) {
