@@ -60,6 +60,8 @@ function _makeFnLoadingState(reducerMod) {
         state[name] = false;
       });
     }
+    state[reducerMod + '/*'] = false;
+    module_trueLoadingCount[reducerMod] = 0;
     return state;
   }
 
@@ -68,6 +70,8 @@ function _makeFnLoadingState(reducerMod) {
     fnNames.forEach(function (name) {
       state[reducerMod + '/' + name] = false;
     });
+    state[reducerMod + '/*'] = false;
+    module_trueLoadingCount[reducerMod] = 0;
   });
   return state;
 }
@@ -111,7 +115,7 @@ toExport.setConf = function (conf) {
   }
 }
 
-/** 如定义此函数，concent配置模块时，会调用此逻辑 */
+/** 如定义此函数，concent掉用configure配置模块时，会调用此逻辑 */
 toExport.writeModuleState = function (pluginModuleState, newModule) {
   var toSet = {};
   if (fnLoading) {
@@ -129,8 +133,19 @@ var latestLoading = true;
 var enqueuedState = {};
 var timer = 0;
 function _commitEnqueuedLoadingStatus() {
-  if (Object.keys(enqueuedState).length > 0) {
-    setState(pluginName, enqueuedState);
+  var moduledFnKeys = Object.keys(enqueuedState);
+  var len = moduledFnKeys.length;
+  if (len > 0) {
+    var fullStateToSet = {};
+    for (var i = 0; i < len; i++) {
+      var moduledFnKey = moduledFnKeys[i];
+      var loading = enqueuedState[moduledFnKey];
+      var ret = moduledFnKey.spit('/');
+      var module = ret[0];
+      var fnName = ret[1];
+      _makeFnLoadingStateToSet(module, fnName, loading, fullStateToSet);
+    }
+    setState(pluginName, fullStateToSet);
     enqueuedState = {};
   }
 }
@@ -148,13 +163,40 @@ function _enqueueLoadingStatus(fnKey, loading) {
   }, 190);
 }
 
+function _makeFnLoadingStateToSet(module, fnName, loading, toSetObj){
+  var key = module + '/' + fnName;
+  var moduleKey = module + '/*';
+  var toSet = toSetObj || {};
+  toSet[key] = loading;
+
+  var newCount;
+  var count = module_trueLoadingCount[module];
+  if (loading === true) {
+    newCount = count + 1;
+    module_trueLoadingCount[module] = newCount;
+  } else {
+    newCount = count - 1;
+    if (newCount >= 0) {
+      module_trueLoadingCount[module] = newCount;
+    }
+  }
+
+  var pluginState = getState(pluginName);
+  if (newCount > 0 && pluginState[moduleKey] !== true) {
+    toSet[moduleKey] = true;
+  }
+  if(newCount === 0 && pluginState[moduleKey] == false){
+    toSet[moduleKey] = false;
+  }
+  return toSet;
+}
+
 function setFnLoadingStatus(module, fnName, loading) {
   var key = module + '/' + fnName;
   if (enqueue !== true) {
-    var toSet = {};
-    toSet[key] = loading;
+    var toSet = _makeFnLoadingStateToSet(module, fnName, loading);
     setState(pluginName, toSet);
-    return
+    return;
   }
 
   var pluginState = getState(pluginName);
