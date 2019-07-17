@@ -140,7 +140,7 @@ function _commitEnqueuedLoadingStatus() {
     for (var i = 0; i < len; i++) {
       var moduledFnKey = moduledFnKeys[i];
       var loading = enqueuedState[moduledFnKey];
-      var ret = moduledFnKey.spit('/');
+      var ret = moduledFnKey.split('/');
       var module = ret[0];
       var fnName = ret[1];
       _makeFnLoadingStateToSet(module, fnName, loading, fullStateToSet);
@@ -185,9 +185,10 @@ function _makeFnLoadingStateToSet(module, fnName, loading, toSetObj){
   if (newCount > 0 && pluginState[moduleKey] !== true) {
     toSet[moduleKey] = true;
   }
-  if(newCount === 0 && pluginState[moduleKey] == false){
+  if(newCount === 0 && pluginState[moduleKey] === true){
     toSet[moduleKey] = false;
   }
+
   return toSet;
 }
 
