@@ -5,6 +5,7 @@ var module_trueLoadingCount = {};
 var moduleAndFnName_isAsyncFn_ = {};
 var fnLoading = true;// if false, workingMode will be moduleLoading
 var onlyForAsync = false;// if true, will only change loading status while call async&generator function
+var enqueue = true;// if false, every fn call will set loading status immediately, not batch then and set then until ** ms later
 
 var toExport = module.exports = {};
 
@@ -103,8 +104,10 @@ toExport.setConf = function (conf) {
   if (conf) {
     var _fnLoading = conf.fnLoading;
     var _onlyForAsync = conf.onlyForAsync;
+    var _enqueue = conf.enqueue;
     if (_fnLoading !== undefined) fnLoading = _fnLoading;
     if (_onlyForAsync !== undefined) onlyForAsync = _onlyForAsync;
+    if (_enqueue !== undefined) enqueue = _enqueue;
   }
 }
 
@@ -122,11 +125,51 @@ toExport.writeModuleState = function (pluginModuleState, newModule) {
   module_trueLoadingCount[newModule] = 0;
 }
 
+var latestLoading = true;
+var enqueuedState = {};
+var timer = 0;
+function _commitEnqueuedLoadingStatus() {
+  if (Object.keys(enqueuedState).length > 0) {
+    setState(pluginName, enqueuedState);
+    enqueuedState = {};
+  }
+}
+
+function _enqueueLoadingStatus(fnKey, loading) {
+  if (loading !== latestLoading) {
+    _commitEnqueuedLoadingStatus();
+  }
+
+  enqueuedState[fnKey] = loading;
+  latestLoading = loading;
+  clearTimeout(timer);
+  timer = setTimeout(function () {
+    _commitEnqueuedLoadingStatus();
+  }, 190);
+}
+
 function setFnLoadingStatus(module, fnName, loading) {
   var key = module + '/' + fnName;
-  var toSet = {};
-  toSet[key] = loading;
-  setState(pluginName, toSet);
+  if (enqueue !== true) {
+    var toSet = {};
+    toSet[key] = loading;
+    setState(pluginName, toSet);
+    return
+  }
+
+  var pluginState = getState(pluginName);
+  var prevLoadingStatus = pluginState[key];
+  if(loading === true){
+    if(prevLoadingStatus !== true) {
+      _enqueueLoadingStatus(key, true);
+    };
+  }else{
+    //不检查prevLoadingStatus（来自于store的值很可能有还未变化，
+    //因为如果时间够短，可能enqueuedState里有一批为true的loading还未提交），
+    //直接触发_enqueueLoadingStatus
+    //此时_enqueueLoadingStatus会触发这批true被提交
+    _enqueueLoadingStatus(key, false);
+  }
 }
 
 function setLoadingTrue(module, fnName) {
