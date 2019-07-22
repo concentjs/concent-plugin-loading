@@ -1,6 +1,6 @@
 {
   "name": "concent-plugin-loading",
-  "version": "1.2.6",
+  "version": "1.2.8",
   "description": "a plugin for control your loading state",
   "main": "index.js",
   "scripts": {
@@ -22,6 +22,6 @@
   },
   "homepage": "https://github.com/concentjs/concent-plugin-loading#readme",
   "dependencies": {
-    "concent": "^1.4.21"
+    "concent": "^1.4.30"
   }
 }
