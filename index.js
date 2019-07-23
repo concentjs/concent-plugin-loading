@@ -1,4 +1,4 @@
-var { cst, getState, setState, appendState, ccContext } = require('concent');
+var { cst, getState, setState, appendState, ccContext, configure } = require('concent');
 
 var pluginName = 'loading';
 var module_trueLoadingCount = {};
@@ -210,6 +210,7 @@ toExport.install = function (on) {
     var moduleName_stateKeys_ = ccContext.moduleName_stateKeys_;
     Object.keys(moduleName_stateKeys_).forEach(function (mod) {
       state[mod] = false;
+      module_trueLoadingCount[mod] = 0;
     });
   }
 
