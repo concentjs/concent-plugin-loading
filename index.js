@@ -57,7 +57,7 @@ function _makeFnLoadingState(reducerMod) {
     var fullFnNames = _reducerModule_fnNames_[reducerMod];
     if (fullFnNames) {
       fullFnNames.forEach(function (name) {
-        state[name] = false;
+        state[reducerMod + '/' + name] = false;
       });
     }
     state[reducerMod + '/*'] = false;
