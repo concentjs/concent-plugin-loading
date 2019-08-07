@@ -3,7 +3,7 @@ var { cst, getState, setState, appendState, ccContext, configure } = require('co
 var pluginName = 'loading';
 var module_trueLoadingCount = {};
 var moduleAndFnName_isAsyncFn_ = {};
-var fnLoading = true;// if false, workingMode will be moduleLoading
+var fnLoading = true;// if false, plugin will not record loading status for fn
 var onlyForAsync = false;// if true, will only change loading status while call async&generator function
 var enqueue = true;// if false, every fn call will set loading status immediately, not batch then and set then until ** ms later
 
@@ -60,7 +60,7 @@ function _makeFnLoadingState(reducerMod) {
         state[reducerMod + '/' + name] = false;
       });
     }
-    state[reducerMod + '/*'] = false;
+    state[reducerMod] = false;
     module_trueLoadingCount[reducerMod] = 0;
     return state;
   }
@@ -70,7 +70,7 @@ function _makeFnLoadingState(reducerMod) {
     fnNames.forEach(function (name) {
       state[reducerMod + '/' + name] = false;
     });
-    state[reducerMod + '/*'] = false;
+    state[reducerMod] = false;
     module_trueLoadingCount[reducerMod] = 0;
   });
   return state;
@@ -112,7 +112,7 @@ function _enqueueLoadingStatus(fnKey, loading) {
 
 function _makeFnLoadingStateToSet(module, fnName, loading, toSetObj) {
   var key = module + '/' + fnName;
-  var moduleKey = module + '/*';
+  var moduleKey = module;
   var toSet = toSetObj || {};
   toSet[key] = loading;
 
