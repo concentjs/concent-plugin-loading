@@ -28,11 +28,12 @@ false表示调用异步函数函数结束
 import { register } from 'concent';
 import React, { Component } from 'react';
 
-@register('StudentPanel', { 
+@register({ 
   module: 'student', 
-  sharedStateKeys: '*', 
   //连接loading模块，关心student模块的loading状态
-  connect:{'loading':['student']} 
+  connect:{'loading':['student']},
+  //如关心某个具体的方法loading状态，可以写为
+  //connect:{'loading':['student/m1', 'student/m2']},
 })
 export default class StudentPanel extends Component {
 
