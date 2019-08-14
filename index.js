@@ -294,13 +294,6 @@ toExport.install = function (on) {
 }
 
 /**
- * @param {{fnLoading:boolean, onlyForAsync:boolean}} conf fnLoading default is true, onlyForAsync default is false
- */
-/**
- * 
- */
-
-/**
  * @param {{fnLoading:boolean, onlyForAsync:boolean, enqueue:boolean, excludeModules:string[], excludeFns:string[]}} conf 
  * fnLoading default is true, 
  * onlyForAsync default is false,
