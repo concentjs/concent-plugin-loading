@@ -7,6 +7,9 @@ var fnLoading = true;// if false, plugin will not record loading status for fn
 var onlyForAsync = false;// if true, will only change loading status while call async&generator function
 var enqueue = true;// if false, every fn call will set loading status immediately, not batch then and set then until ** ms later
 
+var excludeModules = [];
+var excludeFns = [];
+
 var toExport = module.exports = {};
 
 function isGenerator(obj) {
@@ -54,6 +57,10 @@ function _makeFnLoadingState(reducerMod) {
   var _reducerModule_fnNames_ = ccContext.reducer._reducerModule_fnNames_;
 
   if (reducerMod) {
+    if (excludeModules.includes(reducerMod)) {
+      return null;
+    }
+
     var fullFnNames = _reducerModule_fnNames_[reducerMod];
     if (fullFnNames) {
       fullFnNames.forEach(function (name) {
@@ -66,6 +73,10 @@ function _makeFnLoadingState(reducerMod) {
   }
 
   Object.keys(_reducerModule_fnNames_).forEach(function (reducerMod) {
+    if (excludeModules.includes(reducerMod)) {
+      return;
+    }
+
     const fnNames = _reducerModule_fnNames_[reducerMod];
     fnNames.forEach(function (name) {
       state[reducerMod + '/' + name] = false;
@@ -217,7 +228,7 @@ toExport.install = function (on) {
   // 将loading配置成concent的模块
   configure(pluginName, { state });
 
-  on([cst.SIG_FN_START, cst.SIG_FN_END, cst.SIG_FN_ERR, cst.SIG_FN_QUIT], function(data){
+  on([cst.SIG_FN_START, cst.SIG_FN_END, cst.SIG_FN_ERR, cst.SIG_FN_QUIT], function (data) {
     var payload = data.payload;
     var sig = data.sig;
 
@@ -225,10 +236,19 @@ toExport.install = function (on) {
     if (!fn) return;//有可能非reducer调用
     if (payload.calledBy == 'invoke') return;//invoke调用，无loading特效
     if (!payload.isSourceCall) return;//非源头触发的调用，无loading特效
-  
+
     var module = payload.module;
-  
+    if (excludeModules.includes(module)) {
+      return;
+    }
+
     var fnName = fn.__fnName || fn.name;
+
+    var fnKey = module + '/' + fnName;
+    if (excludeFns.includes(fnKey)) {
+      return;
+    }
+
     if (cst.SIG_FN_START === sig) {
       if (onlyForAsync === true) {//处于只有async函数才需要有loading的工作模式
         if (isAsyncFunction(module, fn)) {
@@ -239,7 +259,7 @@ toExport.install = function (on) {
       setLoadingTrue(module, fnName);
       return;
     }
-  
+
     if ([cst.SIG_FN_END, cst.SIG_FN_ERR, cst.SIG_FN_QUIT].indexOf(sig) !== -1) {
       if (onlyForAsync === true) {
         if (isAsyncFunction(module, fn)) {
@@ -257,7 +277,11 @@ toExport.install = function (on) {
     var toSet = {};
     if (fnLoading) {
       toSet = _makeFnLoadingState(newModule);
-      appendState(pluginName, toSet);
+      if (toSet) appendState(pluginName, toSet);
+      return;
+    }
+
+    if (excludeModules.includes(newModule)) {
       return;
     }
 
@@ -272,14 +296,29 @@ toExport.install = function (on) {
 /**
  * @param {{fnLoading:boolean, onlyForAsync:boolean}} conf fnLoading default is true, onlyForAsync default is false
  */
+/**
+ * 
+ */
+
+/**
+ * @param {{fnLoading:boolean, onlyForAsync:boolean, enqueue:boolean, excludeModules:string[], excludeFns:string[]}} conf 
+ * fnLoading default is true, 
+ * onlyForAsync default is false,
+ * enqueue default is true,
+ */
 toExport.setConf = function (conf) {
   if (conf) {
     var _fnLoading = conf.fnLoading;
     var _onlyForAsync = conf.onlyForAsync;
     var _enqueue = conf.enqueue;
+    var _excludeModules = conf.excludeModules;
+    var _excludeFns = conf.excludeFns;
+
     if (_fnLoading !== undefined) fnLoading = _fnLoading;
     if (_onlyForAsync !== undefined) onlyForAsync = _onlyForAsync;
     if (_enqueue !== undefined) enqueue = _enqueue;
+    if (_excludeModules !== undefined) excludeModules = _excludeModules;
+    if (_excludeFns !== undefined) excludeFns = _excludeFns;
   }
 }
 
