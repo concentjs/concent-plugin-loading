@@ -1,6 +1,6 @@
 
 ### concent-plugin-loading
-一个方便你集中管理loading的插件
+一个轻松控制concent应用loading状态的插件
 
 ### [在线示例](https://stackblitz.com/edit/cc-plugin-loading)
 
