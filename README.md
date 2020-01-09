@@ -38,19 +38,19 @@ import React, { Component } from 'react';
 export default class StudentPanel extends Component {
 
   changeName = () => {
-    this.$$dispatch('handleStudentNameChange', this.state.tmpName);
+    this.ctx.dispatch('handleStudentNameChange', this.state.tmpName);
   }
 
   render() {
     const { name, tmpName } = this.state;
-    const loading = this.$$connectedState.loading.student;
+    const loading = this.ctx.connectedState.loading.student;
     console.log('@@@ StudentPanel', loading);
 
     return (
       <div>
          {loading? '提交中':''}
         <p>name: {name}</p>
-        <input value={tmpName} onChange={this.$$sync('tmpName')} />
+        <input value={tmpName} onChange={this.ctx.sync('tmpName')} />
         <button onClick={this.changeName}>修改名字</button>
       </div>
     );
@@ -87,9 +87,9 @@ export async function handleStudentNameChange({dispatch, payload:name}){
   changeName = () => {
     //假设student模块存在以下3个reducer函数，这里同时调了3次
     //全部结束时,student模块的loading才会写为false
-    this.$$dispatch('handleStudentNameChange', this.state.tmpName);
-    this.$$dispatch('handleStudentNameChange2', this.state.tmpName);
-    this.$$dispatch('handleStudentNameChange3', this.state.tmpName);
+    this.ctx.dispatch('handleStudentNameChange', this.state.tmpName);
+    this.ctx.dispatch('handleStudentNameChange2', this.state.tmpName);
+    this.ctx.dispatch('handleStudentNameChange3', this.state.tmpName);
   }
 ```
 
