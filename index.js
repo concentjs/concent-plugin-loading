@@ -3,7 +3,7 @@ var { cst, getState, setState, appendState, ccContext, configure } = require('co
 var pluginName = 'loading';
 var module_trueLoadingCount = {};
 var moduleAndFnName_isAsyncFn_ = {};
-var fnLoading = true;// if false, plugin will not record loading status for fn
+var fnLoading = true;// if false, plugin will not record loading status for fn, only record loading status for module
 var onlyForAsync = false;// if true, will only change loading status while call async&generator function
 var enqueue = true;// if false, every fn call will set loading status immediately, not batch then and set then until ** ms later
 
