@@ -54,14 +54,14 @@ function isAsyncFunction(module, fn) {
 
 function _makeFnLoadingState(reducerMod) {
   var state = {};
-  var _reducerModule_fnNames_ = ccContext.reducer._reducerModule_fnNames_;
+  var _module_fnNames_ = ccContext.reducer._module_fnNames_;
 
   if (reducerMod) {
     if (excludeModules.includes(reducerMod)) {
       return null;
     }
 
-    var fullFnNames = _reducerModule_fnNames_[reducerMod];
+    var fullFnNames = _module_fnNames_[reducerMod];
     if (fullFnNames) {
       fullFnNames.forEach(function (name) {
         state[reducerMod + '/' + name] = false;
@@ -72,12 +72,12 @@ function _makeFnLoadingState(reducerMod) {
     return state;
   }
 
-  Object.keys(_reducerModule_fnNames_).forEach(function (reducerMod) {
+  Object.keys(_module_fnNames_).forEach(function (reducerMod) {
     if (excludeModules.includes(reducerMod)) {
       return;
     }
 
-    const fnNames = _reducerModule_fnNames_[reducerMod];
+    const fnNames = _module_fnNames_[reducerMod];
     fnNames.forEach(function (name) {
       state[reducerMod + '/' + name] = false;
     });
