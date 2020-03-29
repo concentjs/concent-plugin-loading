@@ -6,7 +6,7 @@
 
 ### 如何使用
 在启动concent的时候配置好插件，就可以使用了
-```
+```js
 import { run } from 'concent';
 import loadingPlugin from 'concent-plugin-loading';
 import student from './models/student';
@@ -24,7 +24,7 @@ run(
 读取loading值，`loadingPlugin`会注册自己的模块`loading`,该模块的key就是其他`concent`里所有模块的名字，值就是这个模块loading值，true表示该模块正在调用异步函数，
 false表示调用异步函数函数结束
 
-```
+```js
 import { register } from 'concent';
 import React, { Component } from 'react';
 
@@ -59,7 +59,7 @@ export default class StudentPanel extends Component {
 
 ```
 reducer定义
-```
+```js
 // code in models/student/reducer.js
 const sleep = (ms = 3000)=> new Promise(resolve=> setTimeout(resolve, ms));
 
@@ -96,7 +96,7 @@ export async function handleStudentNameChange({dispatch, payload:name}){
 * 注意2，dispatch穿插调用
 >在一个模块的reducer函数里，调用了另外模块的reducer函数，那个模块的loading值也会经历变成true然后变成false的过程
 
-```
+```js
 // code in models/student/reducer.js
 const sleep = (ms = 3000)=> new Promise(resolve=> setTimeout(resolve, ms));
 
