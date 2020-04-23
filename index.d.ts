@@ -1,3 +1,4 @@
+
 /**
  * @param config 
  * @param {boolean} config.fnLoading default:true, 是否为函数记录loading状态，设置为false的话，只为模块记录loading状态
@@ -12,6 +13,7 @@ export declare function setConf(config: { fnLoading: boolean, onlyForAsync: bool
 
 declare type DefaultExport = {
   setConf: typeof setConf,
+  install: (on: any) => any,
 }
 
 declare let defaultExport: DefaultExport;
