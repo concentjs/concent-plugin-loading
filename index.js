@@ -1,8 +1,8 @@
 var { cst, getState, setState, appendState, ccContext, configure } = require('concent');
 
 var pluginName = 'loading';
-var module_trueLoadingCount = {};
-var moduleAndFnName_isAsyncFn_ = {};
+var module2trueLoadingCount = {};
+var moduleAndFnName2isAsyncFn = {};
 var fnLoading = true;// if false, plugin will not record loading status for fn, only record loading status for module
 var onlyForAsync = false;// if true, will only change loading status while call async&generator function
 var enqueue = true;// if false, every fn call will set loading status immediately, not batch then and set then until ** ms later
@@ -25,64 +25,64 @@ function isGeneratorFunction(obj) {
 
 function isAsyncFunction(module, fn) {
   var key = module + '/' + fn.name;
-  var isAsync = moduleAndFnName_isAsyncFn_[key];
+  var isAsync = moduleAndFnName2isAsyncFn[key];
   if (isAsync !== undefined) {//返回缓存的结果
     return isAsync;
   }
 
   isAsync = Object.prototype.toString.call(fn) === '[object AsyncFunction]';
   if (isAsync === true) {
-    moduleAndFnName_isAsyncFn_[key] = true;
+    moduleAndFnName2isAsyncFn[key] = true;
     return true;
   }
 
   //有可能成降级编译成 __awaiter格式的了
   var fnStr = fn.toString();
   if (fnStr.indexOf('__awaiter') > 0) {
-    moduleAndFnName_isAsyncFn_[key] = true;
+    moduleAndFnName2isAsyncFn[key] = true;
     return true;
   }
 
   if (isGeneratorFunction(fn)) {
-    moduleAndFnName_isAsyncFn_[key] = true;
+    moduleAndFnName2isAsyncFn[key] = true;
     return true;
   }
 
-  moduleAndFnName_isAsyncFn_[key] = false;
+  moduleAndFnName2isAsyncFn[key] = false;
   return false;
 }
 
 function _makeFnLoadingState(reducerMod) {
   var state = {};
-  var _module_fnNames_ = ccContext.reducer._module_fnNames_;
+  var _module2fnNames = ccContext.reducer._module2fnNames;
 
   if (reducerMod) {
     if (excludeModules.includes(reducerMod)) {
       return null;
     }
 
-    var fullFnNames = _module_fnNames_[reducerMod];
+    var fullFnNames = _module2fnNames[reducerMod];
     if (fullFnNames) {
       fullFnNames.forEach(function (name) {
         state[reducerMod + '/' + name] = false;
       });
     }
     state[reducerMod] = false;
-    module_trueLoadingCount[reducerMod] = 0;
+    module2trueLoadingCount[reducerMod] = 0;
     return state;
   }
 
-  Object.keys(_module_fnNames_).forEach(function (reducerMod) {
+  Object.keys(_module2fnNames).forEach(function (reducerMod) {
     if (excludeModules.includes(reducerMod)) {
       return;
     }
 
-    const fnNames = _module_fnNames_[reducerMod];
+    const fnNames = _module2fnNames[reducerMod];
     fnNames.forEach(function (name) {
       state[reducerMod + '/' + name] = false;
     });
     state[reducerMod] = false;
-    module_trueLoadingCount[reducerMod] = 0;
+    module2trueLoadingCount[reducerMod] = 0;
   });
   return state;
 }
@@ -128,14 +128,14 @@ function _makeFnLoadingStateToSet(module, fnName, loading, toSetObj) {
   toSet[key] = loading;
 
   var newCount;
-  var count = module_trueLoadingCount[module];
+  var count = module2trueLoadingCount[module];
   if (loading === true) {
     newCount = count + 1;
-    module_trueLoadingCount[module] = newCount;
+    module2trueLoadingCount[module] = newCount;
   } else {
     newCount = count - 1;
     if (newCount >= 0) {
-      module_trueLoadingCount[module] = newCount;
+      module2trueLoadingCount[module] = newCount;
     }
   }
 
@@ -179,8 +179,8 @@ function setLoadingTrue(module, fnName) {
     return;
   }
 
-  var count = module_trueLoadingCount[module];
-  module_trueLoadingCount[module] = count + 1;
+  var count = module2trueLoadingCount[module];
+  module2trueLoadingCount[module] = count + 1;
   var pluginState = getState(pluginName);
 
   //不为true时，才通知concent变成true
@@ -197,10 +197,10 @@ function setLoadingFalse(module, fnName) {
     return;
   }
 
-  var count = module_trueLoadingCount[module];
+  var count = module2trueLoadingCount[module];
   var newCount = count - 1;
   if (newCount < 0) newCount = 0;
-  module_trueLoadingCount[module] = newCount;
+  module2trueLoadingCount[module] = newCount;
 
   if (newCount === 0) {
     var pluginState = getState(pluginName);
@@ -218,10 +218,10 @@ toExport.install = function (on) {
   if (fnLoading) {
     state = _makeFnLoadingState();
   } else {
-    var moduleName_stateKeys_ = ccContext.moduleName_stateKeys_;
-    Object.keys(moduleName_stateKeys_).forEach(function (mod) {
+    var moduleName2stateKeys = ccContext.moduleName2stateKeys;
+    Object.keys(moduleName2stateKeys).forEach(function (mod) {
       state[mod] = false;
-      module_trueLoadingCount[mod] = 0;
+      module2trueLoadingCount[mod] = 0;
     });
   }
 
@@ -287,7 +287,7 @@ toExport.install = function (on) {
 
     toSet[newModule] = false;
     appendState(pluginName, toSet);
-    module_trueLoadingCount[newModule] = 0;
+    module2trueLoadingCount[newModule] = 0;
   })
 
   return { name: pluginName }
