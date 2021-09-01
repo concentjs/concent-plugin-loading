@@ -9,6 +9,13 @@ var enqueue = true;// if false, every fn call will set loading status immediatel
 
 var excludeModules = [];
 var excludeFns = [];
+var includeFns = [];
+
+/**
+ * see: https://github.com/concentjs/concent/issues/59
+ */
+var onlySourceCallTriggerLoading = true;
+var invokeCallNoLoading = true;
 
 var toExport = module.exports = {};
 
@@ -233,9 +240,9 @@ toExport.install = function (on) {
     var sig = data.sig;
 
     var fn = payload.fn;
-    if (!fn) return;//有可能非reducer调用
-    if (payload.calledBy == 'invoke') return;//invoke调用，无loading特效
-    if (!payload.isSourceCall) return;//非源头触发的调用，无loading特效
+    if (!fn) return; // 有可能非reducer调用
+    if (payload.calledBy == 'invoke') return; // invoke调用，无loading特效
+    if (!payload.isSourceCall) return; // 非源头触发的调用，无loading特效
 
     var module = payload.module;
     if (excludeModules.includes(module)) {
@@ -245,7 +252,12 @@ toExport.install = function (on) {
     var fnName = fn.__fnName || fn.name;
 
     var fnKey = module + '/' + fnName;
-    if (excludeFns.includes(fnKey)) {
+    // 配置了可以触发loading函数则优先判断 fnKey 是否在这些函数范围内，此时 excludeFns 无效
+    if (includeFns.length > 0) {
+      if (!includeFns.includes(fnKey)) {
+        return;
+      }
+    } else if (excludeFns.includes(fnKey)) {
       return;
     }
 
@@ -293,25 +305,25 @@ toExport.install = function (on) {
   return { name: pluginName }
 }
 
-/**
- * @param {{fnLoading:boolean, onlyForAsync:boolean, enqueue:boolean, excludeModules:string[], excludeFns:string[]}} conf 
- * fnLoading default is true, 
- * onlyForAsync default is false,
- * enqueue default is true,
- */
-toExport.setConf = function (conf) {
+toExport.setConf = function (/** @type {import('./types').IConfig} */conf) {
   if (conf) {
     var _fnLoading = conf.fnLoading;
     var _onlyForAsync = conf.onlyForAsync;
     var _enqueue = conf.enqueue;
     var _excludeModules = conf.excludeModules;
     var _excludeFns = conf.excludeFns;
+    var _includeFns = conf.includeFns;
+    var _onlySourceCallTriggerLoading = conf.onlySourceCallTriggerLoading;
+    var _invokeCallNoLoading = conf.invokeCallNoLoading;
 
     if (_fnLoading !== undefined) fnLoading = _fnLoading;
     if (_onlyForAsync !== undefined) onlyForAsync = _onlyForAsync;
     if (_enqueue !== undefined) enqueue = _enqueue;
-    if (_excludeModules !== undefined) excludeModules = _excludeModules;
-    if (_excludeFns !== undefined) excludeFns = _excludeFns;
+    if (Array.isArray(_excludeModules)) excludeModules = _excludeModules;
+    if (Array.isArray(_excludeFns)) excludeFns = _excludeFns;
+    if (Array.isArray(_includeFns)) includeFns = _includeFns;
+    if (_onlySourceCallTriggerLoading !== undefined) onlySourceCallTriggerLoading = _onlySourceCallTriggerLoading;
+    if (_invokeCallNoLoading !== undefined) invokeCallNoLoading = _invokeCallNoLoading;
   }
 }
 
